@@ -5,7 +5,13 @@ from pathlib import Path
 
 from pennreach.db import Store
 from pennreach.drafting import draft_for
-from pennreach.finder import extract_penn_email, find_emails, is_penn_email
+from pennreach.finder import (
+    extract_penn_email,
+    find_emails,
+    import_directory_results,
+    is_penn_email,
+    lookup_list,
+)
 from pennreach.importer import import_csv
 from pennreach.review import review
 from pennreach.sender import send_approved
@@ -102,6 +108,42 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(self.store.get(a)["status"], "ready")
         self.assertEqual(self.store.get(a)["email"], "jlee@wharton.upenn.edu")
         self.assertEqual(self.store.get(b)["status"], "new")
+
+    def test_directory_lookup_roundtrip(self):
+        import json
+
+        a = self.store.add_contact(name="Deven Hagen", firm="Jane Street")
+        b = self.store.add_contact(name="Jordan Lee", firm="Goldman Sachs")
+        c = self.store.add_contact(name="Kieran Chetty", firm="Citadel")
+        d = self.store.add_contact(name="Sam Nobody", firm="SIG")
+        self.store.add_contact(name="Benjamin L.", firm="SIG")
+        people = json.loads(lookup_list(self.store))
+        self.assertEqual([p[1:] for p in people],
+                         [["Deven", "Hagen"], ["Jordan", "Lee"], ["Kieran", "Chetty"], ["Sam", "Nobody"]])
+        path = Path(self.tmp.name) / "penn_emails.csv"
+        path.write_text(
+            "contact_id,contact_name,directory_name,affiliation,email\n"
+            f'{a},Deven Hagen,"Hagen, Deven Augustus",Student - College,dhagen@sas.upenn.edu\n'
+            f'{b},Jordan Lee,"Lee, Jordan A",Student - Wharton,jlee1@wharton.upenn.edu\n'
+            f'{b},Jordan Lee,"Lee, Jordan B",Student - SEAS,jlee2@seas.upenn.edu\n'
+            f'{c},Kieran Chetty,"Chetty, Kieran",Student - SEAS,\n'
+            f"{d},Sam Nobody,,,\n")
+        out = []
+        t = import_directory_results(self.store, path, ask=scripted(["2"]), out=out.append)
+        self.assertEqual((t["filled"], t["chosen"], t["no_match"]), (2, 1, 2))
+        self.assertEqual(self.store.get(a)["email"], "dhagen@sas.upenn.edu")
+        self.assertEqual(self.store.get(b)["email"], "jlee2@seas.upenn.edu")
+        self.assertEqual(self.store.get(c)["status"], "new")
+
+    def test_directory_import_detects_not_logged_in(self):
+        a = self.store.add_contact(name="Deven Hagen", firm="Jane Street")
+        path = Path(self.tmp.name) / "penn_emails.csv"
+        path.write_text("contact_id,contact_name,directory_name,affiliation,email\n"
+                        f'{a},Deven Hagen,"Hagen, Deven",Student,\n')
+        out = []
+        t = import_directory_results(self.store, path, out=out.append)
+        self.assertEqual(t["filled"], 0)
+        self.assertIn("weren't logged in", out[0])
 
     def test_draft_renders_personalized(self):
         cid = self.store.add_contact(name="Priya Patel (she/her)", firm="Jane Street",

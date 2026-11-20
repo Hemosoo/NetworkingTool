@@ -10,7 +10,14 @@ from pathlib import Path
 from .config import load_config
 from .db import STATUSES, Store
 from .drafting import draft_for
-from .finder import extract_penn_email, find_emails, is_penn_email
+from .finder import (
+    PENN_DIRECTORY_URL,
+    extract_penn_email,
+    find_emails,
+    import_directory_results,
+    is_penn_email,
+    lookup_list,
+)
 from .importer import evaluate, import_csv, passes_filters
 from .review import review
 from .sender import remaining_today, send_approved
@@ -75,6 +82,43 @@ def cmd_add(args) -> int:
 def cmd_find(args) -> int:
     n = find_emails(_store(args), open_browser=args.open)
     print(f"\nFilled in {n} email(s).")
+    return 0
+
+
+def cmd_lookup_list(args) -> int:
+    import subprocess
+
+    data = lookup_list(_store(args))
+    n = data.count("],[") + 1 if data != "[]" else 0
+    if not n:
+        print("No contacts are waiting for an email.")
+        return 0
+    copied = False
+    for cmd in (["pbcopy"], ["wl-copy"], ["xclip", "-selection", "clipboard"]):
+        try:
+            subprocess.run(cmd, input=data.encode(), check=True, capture_output=True)
+            copied = True
+            break
+        except (OSError, subprocess.CalledProcessError):
+            continue
+    if copied:
+        print(f"Copied {n} name(s) to your clipboard.")
+    else:
+        print(f"Copy this line ({n} names):\n\n{data}\n")
+    print(f"""
+Next:
+  1. Open {PENN_DIRECTORY_URL} and click "Log in" (PennKey) so emails are visible.
+  2. Click your "PennReach: Penn Directory lookup" bookmark and paste the list.
+  3. When it finishes: python3 -m pennreach import-emails ~/Downloads/penn_emails.csv""")
+    return 0
+
+
+def cmd_import_emails(args) -> int:
+    t = import_directory_results(_store(args), args.csv)
+    print(f"\nFilled {t['filled']} email(s) ({t['chosen']} picked by you), "
+          f"{t['no_match']} with no match, {t['skipped']} skipped.")
+    if t["filled"]:
+        print("Next: `python3 -m pennreach draft`.")
     return 0
 
 
@@ -191,6 +235,14 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("find-emails", help="look up Penn emails via the Penn Directory")
     s.add_argument("--open", action="store_true", help="open the Penn Directory in your browser")
     s.set_defaults(func=cmd_find)
+
+    sub.add_parser(
+        "lookup-list", help="copy pending names for the Penn Directory bookmarklet"
+    ).set_defaults(func=cmd_lookup_list)
+
+    s = sub.add_parser("import-emails", help="read penn_emails.csv from the directory bookmarklet")
+    s.add_argument("csv")
+    s.set_defaults(func=cmd_import_emails)
 
     s = sub.add_parser("draft", help="write emails for contacts that have an address")
     s.add_argument("--redraft", action="store_true", help="also re-render existing drafts")

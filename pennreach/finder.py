@@ -78,3 +78,103 @@ def find_emails(
             filled += 1
             break
     return filled
+
+
+# ---- Bookmarklet-assisted lookup ------------------------------------------------------------
+# `lookup-list` hands the pending names to the Penn Directory bookmarklet, which runs the searches
+# inside your own logged-in browser session and downloads penn_emails.csv; `import-emails` reads
+# that file back, auto-filling unique matches and asking only when there's a real choice.
+
+
+def lookup_list(store: Store) -> str:
+    """Compact JSON [[id, first, last], ...] of contacts still missing an email."""
+    import json
+
+    from .parsing import clean_name
+
+    people = []
+    for c in store.list(["new"]):
+        parts = clean_name(c["name"]).split()
+        if len(parts) >= 2 and not parts[-1].endswith("."):  # skip "Benjamin L." style names
+            people.append([c["id"], parts[0], parts[-1]])
+    return json.dumps(people, ensure_ascii=False, separators=(",", ":"))
+
+
+def _directory_first_name(dir_name: str) -> str:
+    # "Hagen, Deven Augustus Sehgal" -> "deven"
+    _, _, rest = dir_name.partition(",")
+    return (rest.split() or [""])[0].lower()
+
+
+def import_directory_results(
+    store: Store,
+    path: str,
+    *,
+    ask: Callable[[str], str] = input,
+    out: Callable[[str], None] = print,
+) -> dict[str, int]:
+    import csv
+
+    tally = {"filled": 0, "chosen": 0, "no_match": 0, "skipped": 0}
+    by_contact: dict[int, list[dict[str, str]]] = {}
+    with open(path, newline="", encoding="utf-8-sig") as fh:
+        for row in csv.DictReader(fh):
+            try:
+                cid = int(row["contact_id"])
+            except (KeyError, ValueError):
+                continue
+            by_contact.setdefault(cid, [])
+            if row.get("directory_name"):
+                by_contact[cid].append(row)
+
+    listings = sum(len(v) for v in by_contact.values())
+    with_email = sum(1 for v in by_contact.values() for r in v if r.get("email"))
+    if listings and not with_email:
+        out("None of the directory listings had an email. You probably weren't logged in.\n"
+            "Log in to the Penn Directory with your PennKey and run the bookmarklet again.")
+        return tally
+
+    for cid, rows in by_contact.items():
+        c = store.get(cid)
+        if c is None or c["status"] != "new":
+            continue
+        first = (c["name"].split() or [""])[0].lower()
+        candidates = []
+        for r in rows:
+            for email in (r.get("email") or "").split():
+                if is_penn_email(email):
+                    candidates.append((r, email.lower()))
+        # Prefer listings whose first name matches what's on LinkedIn.
+        exact = [(r, e) for r, e in candidates if _directory_first_name(r["directory_name"]) == first]
+        if len({e for _, e in exact}) == 1:
+            candidates = exact
+        options: list[tuple[dict[str, str], str]] = []
+        for r, e in candidates:  # one option per distinct email, in directory order
+            if e not in {oe for _, oe in options}:
+                options.append((r, e))
+
+        if not candidates:
+            out(f"#{cid} {c['name']}: no listing with an email; use `find-emails` for this one.")
+            tally["no_match"] += 1
+            continue
+        if len(options) == 1:
+            chosen_row, email = options[0]
+        else:
+            out(f"\n#{cid} {c['name']} ({c['headline'] or c['firm']}): several matches")
+            for i, (r, e) in enumerate(options, 1):
+                out(f"  {i}. {r['directory_name']} — {r['affiliation']} — {e}")
+            answer = ask("  pick a number, or [s]kip > ").strip().lower()
+            if not answer.isdigit() or not 1 <= int(answer) <= len(options):
+                tally["skipped"] += 1
+                continue
+            chosen_row, email = options[int(answer) - 1]
+            tally["chosen"] += 1
+        blocked = store.email_blocked(email, exclude_id=cid)
+        if blocked:
+            out(f"#{cid} {c['name']}: {email} is {blocked}; skipping.")
+            tally["skipped"] += 1
+            continue
+        store.update(cid, email=email, email_source="penn_directory", status="ready")
+        out(f"#{cid} {c['name']} → {email}  ({chosen_row['directory_name']})")
+        tally["filled"] += 1
+    return tally

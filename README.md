@@ -13,7 +13,7 @@ LinkedIn search ──bookmarklet──▶ contacts.csv ──import──▶ fi
 |---|---|
 | **Local CLI + SQLite** instead of a web app or MCP server | It's a stop/start pipeline. State lives in `pennreach.db`, so you can import today, look up emails tomorrow and send next week, and no one is ever emailed twice. |
 | **A bookmarklet captures LinkedIn results you're viewing** instead of a headless scraper | LinkedIn bans accounts that use automated logins and crawlers, and your account is your professional identity. The bookmarklet only reads the page already on your screen, at your own pace. |
-| **Penn Directory lookup** instead of guessing emails | Penn addresses are PennKey-based (`jdoe@wharton.upenn.edu`, `smithj@seas.upenn.edu`…) and can't be derived from a name. A wrong guess emails a stranger. The tool walks you through each lookup and validates that what you paste is a `upenn.edu` address. |
+| **Penn Directory lookup** instead of guessing emails | Penn addresses are PennKey-based (`jdoe@wharton.upenn.edu`, `smithj@seas.upenn.edu`…) and can't be derived from a name. A wrong guess emails a stranger. A bookmarklet runs one directory search per person in your own logged-in browser, and you confirm any ambiguous matches. |
 | **Dry run by default, a daily cap, random delays** | 10–15 personal emails a day from your Penn account reads as a human. 200 in a minute gets flagged as spam and annoys the people you want to meet. |
 
 ## Setup
@@ -66,10 +66,27 @@ pennreach import ~/Downloads/contacts.csv -v
 Only people who are **incoming/returning at a target firm** and in your **target class year** are kept. `-v` shows why each of the others was filtered out.
 
 ### 3. Get their Penn emails
+
+**Automatic (recommended).** Student emails in the Penn Directory are only visible when you're logged in, so the lookup runs in your own browser:
+
+1. One-time setup: run `python3 bookmarklet/build.py directory` and save the printed line as a bookmark named "PennReach: Penn Directory lookup".
+2. Copy your pending names to the clipboard:
+   ```bash
+   pennreach lookup-list
+   ```
+3. Open the [Penn Directory](https://directory.apps.upenn.edu/directory/jsp/fast.do), click **Log in** and sign in with PennKey and Duo.
+4. Click the bookmark and paste the list. It searches each person with a short pause between searches, then downloads `penn_emails.csv`.
+5. Import the results:
+   ```bash
+   pennreach import-emails ~/Downloads/penn_emails.csv
+   ```
+   A single match is filled in automatically. When there are several (two "Jordan Lee"s, or "Chris" listed as "Christopher"), you pick one from a numbered list.
+
+**Manual fallback,** for anyone the lookup couldn't find:
 ```bash
 pennreach find-emails --open
 ```
-For each person, look them up in the [Penn Directory](https://directory.apps.upenn.edu/directory/jsp/fast.do) and paste the email. You can also paste the whole directory row and the address is extracted.
+This walks you through each person. Paste the email, or the whole directory row, and the address is extracted.
 
 ### 4. Draft → review → send
 ```bash
@@ -118,5 +135,5 @@ pennreach/
   review.py     # interactive approve/decline/edit queue
   sender.py     # SMTP, daily cap, delays, dedupe/opt-out guards
   db.py         # SQLite store + status machine
-bookmarklet/    # LinkedIn capture bookmarklet + builder
+bookmarklet/    # LinkedIn capture + Penn Directory lookup bookmarklets, builder
 ```
