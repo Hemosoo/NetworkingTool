@@ -1,0 +1,11 @@
+# Personal config & data — never commit
+config.toml
+*.db
+*.db-journal
+.env
+contacts*.csv
+!examples/*.csv
+
+__pycache__/
+*.egg-info/
+.venv/
