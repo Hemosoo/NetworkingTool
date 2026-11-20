@@ -22,6 +22,8 @@ DEFAULTS: dict[str, Any] = {
         "require_incoming": True,
         "target_firms": [],
         "aliases": {},
+        # Skip people whose incoming role is an internship (usually underclassmen, not seniors).
+        "exclude_roles": ["intern", "internship", "summer analyst", "summer associate"],
     },
     "limits": {"max_per_day": 15, "min_delay_seconds": 90, "max_delay_seconds": 240},
     "mode": {"auto": False},

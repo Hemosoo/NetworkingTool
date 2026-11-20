@@ -68,6 +68,20 @@ class PipelineTests(unittest.TestCase):
         res = import_csv(path, self.store, self.cfg)
         self.assertEqual((res.rows, res.no_headline, res.added), (1, 1, 0))
 
+    def test_real_world_headlines(self):
+        c = cfg(targeting={"target_firms": ["J.P. Morgan", "SIG", "Jane Street"], "grad_years": [2027]})
+        path = Path(self.tmp.name) / "real.csv"
+        path.write_text(
+            "name,headline\n"
+            "Daria O,CA&S @UPenn | Incoming @JPMorganChase\n"
+            "Ava Z,Incoming Intern at Susquehanna International Group\n"
+            "Rushil P,Incoming SWE Intern @ Jane Street\n"
+            "Deven H,Math @ Penn | Incoming @ Jane Street\n")
+        res = import_csv(path, self.store, c)
+        kept = {r["name"]: r["firm"] for r in self.store.list()}
+        self.assertEqual(kept, {"Daria O": "J.P. Morgan", "Deven H": "Jane Street"})
+        self.assertIn("internship", dict(res.filtered)["Ava Z"])
+
     def test_penn_email_validation(self):
         self.assertTrue(is_penn_email("jdoe@wharton.upenn.edu"))
         self.assertTrue(is_penn_email("jdoe@upenn.edu"))

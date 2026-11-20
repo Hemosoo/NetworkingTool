@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
@@ -22,6 +23,24 @@ COLUMN_ALIASES = {
     "class_year": ("class_year", "year", "grad_year"),
     "education": ("education", "school"),
 }
+
+
+# Common headline spellings, applied on top of [targeting.aliases] for firms in target_firms.
+BUILTIN_ALIASES = {
+    "JPMorganChase": "J.P. Morgan", "JPMorgan Chase": "J.P. Morgan", "J.P. Morgan Chase": "J.P. Morgan",
+    "JPMorgan": "J.P. Morgan", "JP Morgan": "J.P. Morgan", "J.P.Morgan": "J.P. Morgan",
+    "Susquehanna International Group": "SIG", "Susquehanna": "SIG",
+    "Goldman": "Goldman Sachs", "BCG": "Boston Consulting Group",
+    "McKinsey & Company": "McKinsey", "Hudson River": "Hudson River Trading",
+    "DE Shaw": "D. E. Shaw", "D.E. Shaw": "D. E. Shaw",
+}
+
+
+def aliases_for(cfg: Mapping[str, Any]) -> dict[str, str]:
+    firms = set(cfg["targeting"]["target_firms"])
+    merged = {k: v for k, v in BUILTIN_ALIASES.items() if v in firms}
+    merged.update(cfg["targeting"]["aliases"])
+    return merged
 
 
 @dataclass
@@ -48,12 +67,13 @@ def evaluate(row: Mapping[str, str], cfg: Mapping[str, Any]) -> tuple[dict[str, 
     if not name:
         return None, "missing name"
     headline = _pick(row, "headline")
-    parsed = parse_headline(headline, t["target_firms"], t["aliases"])
+    aliases = aliases_for(cfg)
+    parsed = parse_headline(headline, t["target_firms"], aliases)
 
     firm = parsed.firm
     explicit_firm = _pick(row, "firm")
     if explicit_firm:
-        firm = match_firm(explicit_firm, t["target_firms"], t["aliases"]) or explicit_firm
+        firm = match_firm(explicit_firm, t["target_firms"], aliases) or explicit_firm
 
     year_text = _pick(row, "class_year")
     class_year = (
@@ -89,6 +109,10 @@ def passes_filters(fields: Mapping[str, Any], cfg: Mapping[str, Any]) -> str:
     years = t["grad_years"]
     if years and fields["class_year"] is not None and fields["class_year"] not in years:
         return f"class of {fields['class_year']}, not {'/'.join(map(str, years))}"
+    role = (fields["role"] or "").lower()
+    for word in t.get("exclude_roles", []):
+        if re.search(r"(?<!\w)" + re.escape(word.lower()) + r"(?!\w)", role):
+            return f"role '{fields['role']}' looks like an internship"
     return ""
 
 

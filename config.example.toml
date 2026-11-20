@@ -23,6 +23,8 @@ username = "alexchen@sas.upenn.edu"
 grad_years = [2027]
 # Only keep people whose headline says Incoming / Returning / Future ... at a target firm.
 require_incoming = true
+# Skip people whose incoming role is an internship (usually underclassmen). Set to [] to keep them.
+exclude_roles = ["intern", "internship", "summer analyst", "summer associate"]
 target_firms = [
   "Goldman Sachs", "Morgan Stanley", "J.P. Morgan", "Evercore", "Centerview",
   "PJT Partners", "Lazard", "Moelis", "Qatalyst", "Perella Weinberg",
@@ -30,6 +32,7 @@ target_firms = [
   "Jane Street", "Citadel", "Citadel Securities", "Hudson River Trading", "Two Sigma",
   "D. E. Shaw", "Optiver", "SIG", "IMC",
   "McKinsey", "Bain & Company", "Boston Consulting Group",
+  "Bridgewater", "Guggenheim", "Oliver Wyman", "Strategy&", "Palantir",
   "Google", "Meta", "Apple", "Microsoft", "Amazon", "Stripe", "OpenAI", "Anthropic",
 ]
 
@@ -40,6 +43,7 @@ target_firms = [
 "JPMorgan" = "J.P. Morgan"
 "JP Morgan" = "J.P. Morgan"
 "JPMC" = "J.P. Morgan"
+"Guggenheim Securities" = "Guggenheim"
 "BCG" = "Boston Consulting Group"
 "Bain" = "Bain & Company"
 "DE Shaw" = "D. E. Shaw"

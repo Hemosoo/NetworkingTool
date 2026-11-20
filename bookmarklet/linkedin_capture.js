@@ -4,8 +4,8 @@
  * Run it on a LinkedIn people-search results page you are viewing yourself, e.g. a search for
  *   "incoming" with School = University of Pennsylvania.
  * Each click adds (or fills in missing headlines for) the people visible on the current page to a running list (stored in this
- * browser only). When you're done paging, choose OK to download contacts.csv for
- * `pennreach import contacts.csv`.
+ * browser only). When you're done paging, type d to download contacts.csv for
+ * `pennreach import contacts.csv`, or c to clear the list and start over.
  *
  * It reads only what's already on your screen; it doesn't crawl, click, or fetch anything.
  * LinkedIn changes its markup often, so if it captures 0 people the selectors need updating.
@@ -103,19 +103,30 @@
   var added = total - before;
   var missing = 0;
   Object.keys(data).forEach(function (k) { if (!data[k].headline) { missing++; } });
-  var go = confirm(
+  var choice = prompt(
     "PennReach: captured " + added + " new" + (updated ? ", filled in " + updated : "") +
-    " (" + total + " total)." +
-    (missing ? "\n\nWarning: " + missing + " have no headline, so they can't be filtered. Tell whoever set this up." : "") +
-    "\n\n" +
-    "OK = download contacts.csv now\nCancel = keep browsing (go to the next page and click again)"
+    " (" + total + " total" + (missing ? ", " + missing + " still missing a headline" : "") + ").\n\n" +
+    "Type  d  to download contacts.csv\n" +
+    "Type  c  to clear the captured list and start over\n" +
+    "Or press Cancel to keep browsing (go to the next page and click again).",
+    ""
   );
-  if (!go) { return; }
+  choice = (choice || "").trim().toLowerCase();
 
+  if (choice.charAt(0) === "c") {
+    if (confirm("Clear all " + total + " captured people from this browser?")) {
+      save({});
+      alert("PennReach: cleared. Go to page 1 of your search and click again.");
+    }
+    return;
+  }
+  if (choice.charAt(0) !== "d") { return; }
+
+  // People without a headline can't be filtered by firm/role, so leave them out of the file.
   var rows = [["name", "headline", "location", "linkedin_url"]];
   Object.keys(data).forEach(function (k) {
     var p = data[k];
-    rows.push([p.name, p.headline, p.location, p.linkedin_url]);
+    if (p.headline) { rows.push([p.name, p.headline, p.location, p.linkedin_url]); }
   });
   var csv = rows.map(function (r) { return r.map(csvCell).join(","); }).join("\n");
   var blob = new Blob([csv], { type: "text/csv" });
@@ -125,5 +136,9 @@
   document.body.appendChild(link);
   link.click();
   link.remove();
-  if (confirm("Downloaded. Clear the captured list?")) { save({}); }
+  if (confirm(
+    "Downloaded " + (rows.length - 1) + " people" +
+    (missing ? " (left out " + missing + " with no headline; revisit their pages to fill them in)" : "") +
+    ".\n\nClear the captured list now? (OK = clear, Cancel = keep it)"
+  )) { save({}); }
 })();

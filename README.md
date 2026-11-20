@@ -52,7 +52,7 @@ python3 bookmarklet/build.py
 ```
 Create a new browser bookmark and paste the printed `javascript:…` line as its URL.
 
-Then search LinkedIn People with something like `incoming analyst`, filtered to **School: University of Pennsylvania**. Click the bookmark on each results page; it keeps a running list. On the last page, click **OK** to download `contacts.csv`.
+Then search LinkedIn People with something like `incoming analyst`, filtered to **School: University of Pennsylvania**. Click the bookmark on each results page; it keeps a running list. Each click asks what to do next: press **Cancel** to keep browsing, type **d** to download `contacts.csv`, or type **c** to clear the list and start over. People with no headline are left out of the download.
 
 You can also make the CSV by hand (columns `name,headline,linkedin_url`, plus optional `email,firm,role,class_year`), or add one person at a time:
 ```bash
