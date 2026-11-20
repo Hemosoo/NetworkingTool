@@ -27,7 +27,8 @@ class SMTPTransport:
         password = os.environ.get(PASSWORD_ENV)
         if not password:
             raise RuntimeError(
-                f"Set {PASSWORD_ENV} to your SMTP / app password before sending live."
+                f"Set {PASSWORD_ENV} to your SMTP / app password before sending live, "
+                "or use `pennreach open` to send from your own mail app with no password."
             )
         host, port = smtp_cfg["host"], int(smtp_cfg["port"])
         if smtp_cfg.get("use_ssl"):

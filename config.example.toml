@@ -9,7 +9,15 @@ year = 2030                       # your graduation year
 interests = "finance and tech"    # finishes the sentence "I'm really interested in ..."
 penn_email = "alexchen@sas.upenn.edu"
 
+[send]
+# How `pennreach open` opens each approved email for you to send yourself (no password needed):
+#   "gmail"   = Gmail in your browser      "outlook" = Outlook in your browser
+#   "mailto"  = your computer's default mail app (e.g. Apple Mail)
+# Leave empty to be asked each time.
+via = ""
+
 [smtp]
+# Only needed for `pennreach send --live` (automatic sending). `pennreach open` needs none of this.
 # Gmail / Google Workspace: smtp.gmail.com:587 with an App Password.
 # Microsoft 365: smtp.office365.com:587 (SMTP AUTH must be enabled on your account).
 host = "smtp.gmail.com"

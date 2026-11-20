@@ -7,6 +7,7 @@ import shutil
 import sys
 from pathlib import Path
 
+from .compose import VIA_LABELS, open_approved
 from .config import load_config
 from .db import STATUSES, Store
 from .drafting import draft_for
@@ -139,7 +140,14 @@ def cmd_review(args) -> int:
     t = review(_store(args))
     print(f"\nApproved {t['approved']}, declined {t['declined']}, skipped {t['skipped']}.")
     if t["approved"]:
-        print("Next: `pennreach send` (dry run) then `pennreach send --live`.")
+        print("Next: `python3 -m pennreach open` to send them from your own mail app.")
+    return 0
+
+
+def cmd_open(args) -> int:
+    cfg = load_config(args.config)
+    t = open_approved(_store(args), cfg, via=args.via, limit=args.limit)
+    print(f"\nSent {t['sent']}, skipped {t['skipped']}, declined {t['declined']}.")
     return 0
 
 
@@ -252,8 +260,13 @@ def build_parser() -> argparse.ArgumentParser:
         func=cmd_review
     )
 
+    s = sub.add_parser("open", help="open each approved email pre-filled in your mail app; you click Send")
+    s.add_argument("--via", choices=sorted(VIA_LABELS), help="gmail, outlook or mailto (default: config/ask)")
+    s.add_argument("--limit", type=int, help="open at most N this run")
+    s.set_defaults(func=cmd_open)
+
     for name, func, help_ in (
-        ("send", cmd_send, "send approved emails (dry run unless --live)"),
+        ("send", cmd_send, "send approved emails automatically via SMTP (dry run unless --live)"),
         ("auto", cmd_auto, "full-auto: draft + approve + send everything ready"),
     ):
         s = sub.add_parser(name, help=help_)

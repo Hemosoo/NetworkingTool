@@ -27,6 +27,7 @@ DEFAULTS: dict[str, Any] = {
     },
     "limits": {"max_per_day": 15, "min_delay_seconds": 90, "max_delay_seconds": 240},
     "mode": {"auto": False},
+    "send": {"via": ""},
     "template": {"subject": "Penn freshman — coffee chat?", "body": ""},
 }
 

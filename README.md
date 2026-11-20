@@ -37,7 +37,8 @@ Edit `config.toml`:
 - **`[me]`**: your name, school, major, year, interests, and Penn email.
 - **`[targeting]`**: `grad_years` (current seniors, so `2027` for the 2026–27 year) and `target_firms`, plus `aliases` like `"GS" = "Goldman Sachs"`.
 - **`[template]`**: the email. Placeholders: `{first_name}`, `{name}`, `{firm}`, `{role}`, `{role_clause}` (" as an Investment Banking Analyst" or empty), `{my_name}`, `{my_first_name}`, `{my_school}`, `{my_major}`, `{my_interests}`, `{my_year}`, `{my_year_short}`.
-- **`[smtp]`**: how to send. Set the password in your shell, never in the file:
+- **`[send]`**: `via` sets which mail app `pennreach open` uses.
+- **`[smtp]`**: only needed for automatic sending (`send --live`). Set the password in your shell, never in the file:
   ```bash
   export PENNREACH_SMTP_PASSWORD='your-app-password'
   ```
@@ -92,10 +93,13 @@ This walks you through each person. Paste the email, or the whole directory row,
 ```bash
 pennreach draft
 pennreach review
-pennreach send
-pennreach send --live
+pennreach open
 ```
-`review` gives you **[a]pprove / [d]ecline / [e]dit / [s]kip / [q]uit** for each draft, and `e` opens the email in `$EDITOR`. Plain `send` is a dry run that shows what would go out; `--live` actually sends.
+`review` gives you **[a]pprove / [d]ecline / [e]dit / [s]kip / [q]uit** for each draft, and `e` opens the email in `$EDITOR`. Approving never sends anything.
+
+**`pennreach open` (recommended)** opens each approved email already filled in, in Gmail, in Outlook on the web, or in your Mac's Mail app. You read it, click Send yourself, then press `y` in the terminal so it's recorded as sent. No passwords or setup needed. Set `via = "gmail"` (or `"outlook"` / `"mailto"`) under `[send]` in `config.toml` to skip the question each time.
+
+**Automatic sending (optional):** `pennreach send` shows a dry run of who would be emailed. `pennreach send --live` sends over SMTP, which needs the `[smtp]` settings and an app password. Many PennKey/Duo accounts don't allow app passwords, in which case use `open`.
 
 ### Full-auto mode
 Set `auto = true` under `[mode]` in `config.toml`, then:
@@ -133,6 +137,7 @@ pennreach/
   finder.py     # Penn Directory–assisted email lookup + validation
   drafting.py   # template rendering
   review.py     # interactive approve/decline/edit queue
+  compose.py    # `open`: pre-filled compose windows, you click Send
   sender.py     # SMTP, daily cap, delays, dedupe/opt-out guards
   db.py         # SQLite store + status machine
 bookmarklet/    # LinkedIn capture + Penn Directory lookup bookmarklets, builder
