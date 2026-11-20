@@ -1,0 +1,84 @@
+# Copy to config.toml (`pennreach init` does this) and fill in your details.
+# config.toml is git-ignored — keep it that way.
+
+[me]
+name = "Alex Chen"
+school = "the College"            # e.g. "Wharton", "SEAS", "the College", "Nursing"
+major = "Economics"
+year = 2030                       # your graduation year
+interests = "finance and tech"    # finishes the sentence "I'm really interested in ..."
+penn_email = "alexchen@sas.upenn.edu"
+
+[send]
+# How `pennreach open` opens each approved email for you to send yourself (no password needed):
+#   "gmail"   = Gmail in your browser      "outlook" = Outlook in your browser
+#   "mailto"  = your computer's default mail app (e.g. Apple Mail)
+# Leave empty to be asked each time.
+via = ""
+
+[smtp]
+# Only needed for `pennreach send --live` (automatic sending). `pennreach open` needs none of this.
+# Gmail / Google Workspace: smtp.gmail.com:587 with an App Password.
+# Microsoft 365: smtp.office365.com:587 (SMTP AUTH must be enabled on your account).
+host = "smtp.gmail.com"
+port = 587
+use_ssl = false                   # true for port 465
+username = "alexchen@sas.upenn.edu"
+# The password is read from the PENNREACH_SMTP_PASSWORD environment variable — never put it here.
+
+[targeting]
+# Current seniors. In the 2026–27 school year that's the class of 2027.
+grad_years = [2027]
+# Only keep people whose headline says Incoming / Returning / Future ... at a target firm.
+require_incoming = true
+# Skip people whose incoming role is an internship (usually underclassmen). Set to [] to keep them.
+exclude_roles = ["intern", "internship", "summer analyst", "summer associate"]
+target_firms = [
+  "Goldman Sachs", "Morgan Stanley", "J.P. Morgan", "Evercore", "Centerview",
+  "PJT Partners", "Lazard", "Moelis", "Qatalyst", "Perella Weinberg",
+  "Blackstone", "KKR", "Apollo", "Bain Capital",
+  "Jane Street", "Citadel", "Citadel Securities", "Hudson River Trading", "Two Sigma",
+  "D. E. Shaw", "Optiver", "SIG", "IMC",
+  "McKinsey", "Bain & Company", "Boston Consulting Group",
+  "Bridgewater", "Guggenheim", "Oliver Wyman", "Strategy&", "Palantir",
+  "Google", "Meta", "Apple", "Microsoft", "Amazon", "Stripe", "OpenAI", "Anthropic",
+]
+
+[targeting.aliases]
+# Alternate spellings found in headlines -> canonical firm name above.
+"Goldman" = "Goldman Sachs"
+"GS" = "Goldman Sachs"
+"JPMorgan" = "J.P. Morgan"
+"JP Morgan" = "J.P. Morgan"
+"JPMC" = "J.P. Morgan"
+"Guggenheim Securities" = "Guggenheim"
+"BCG" = "Boston Consulting Group"
+"Bain" = "Bain & Company"
+"DE Shaw" = "D. E. Shaw"
+"HRT" = "Hudson River Trading"
+"Susquehanna" = "SIG"
+"PWP" = "Perella Weinberg"
+
+[limits]
+max_per_day = 15                  # hard cap on emails sent in any rolling 24h window
+min_delay_seconds = 90            # random pause between sends so it looks (and is) human-paced
+max_delay_seconds = 240
+
+[mode]
+# Full-auto mode (`pennreach auto --live`) drafts, approves and sends without asking you.
+# It still respects max_per_day and never emails anyone twice. Must be switched on here explicitly.
+auto = false
+
+[template]
+subject = "Penn freshman — coffee chat?"
+body = """
+Hi {first_name},
+
+I'm {my_first_name}, a freshman in {my_school} studying {my_major}. I saw you'll be joining {firm}{role_clause} after graduation — congrats! I'm really interested in {my_interests} and would love to hear how you got there and what you wish you'd known as a freshman.
+
+Would you be open to grabbing coffee or a quick bite on campus sometime in the next few weeks? Happy to work around your schedule (coffee's on me).
+
+Thanks so much,
+{my_name}
+Penn '{my_year_short}
+"""
