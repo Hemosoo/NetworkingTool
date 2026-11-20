@@ -18,13 +18,20 @@ LinkedIn search ──bookmarklet──▶ contacts.csv ──import──▶ fi
 
 ## Setup
 
-Requires Python 3.11+. There are no third-party dependencies.
+Requires **Python 3.11+**. Check with `python3 --version`. The built-in Python on macOS is 3.9 and is too old; run `brew install python@3.12` and use `python3.12`. There are no third-party dependencies, so nothing needs installing.
 
 ```bash
 git clone <this repo> && cd NetworkingTool
-pip install -e .            # gives you the `pennreach` command (or use `python3 -m pennreach`)
-pennreach init              # creates config.toml + pennreach.db
+python3 -m pennreach init   # creates config.toml + pennreach.db
 ```
+
+Run every command from the repo folder as `python3 -m pennreach <command>`. The examples below write `pennreach` for short. If you'd rather type just `pennreach`, install it into a virtual environment:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate && pip install -e .
+```
+
+After that, run `source .venv/bin/activate` in each new terminal before using `pennreach`.
 
 Edit `config.toml`:
 - **`[me]`**: your name, school, major, year, interests, and Penn email.
