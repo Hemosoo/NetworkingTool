@@ -26,22 +26,22 @@ class ComposeTests(unittest.TestCase):
 
     def _approved(self, name, email):
         cid = self.store.add_contact(name=name, firm="Jane Street", email=email)
-        self.store.update(cid, subject="Coffee & chat?", body="Hi Deven,\n\nLine 2 — thanks!\n",
+        self.store.update(cid, subject="Coffee & chat?", body="Hi Taylor,\n\nLine 2 — thanks!\n",
                           status="approved")
         return cid
 
     def test_urls_encode_everything(self):
-        body = "Hi Deven,\n\nCoffee & a chat? 100% my treat — thanks!\n"
-        g = compose_url("gmail", "dh@sas.upenn.edu", "Coffee & chat?", body, "me@sas.upenn.edu")
+        body = "Hi Taylor,\n\nCoffee & a chat? 100% my treat — thanks!\n"
+        g = compose_url("gmail", "tb@sas.upenn.edu", "Coffee & chat?", body, "me@sas.upenn.edu")
         q = urllib.parse.parse_qs(urllib.parse.urlsplit(g).query)
-        self.assertEqual(q["to"], ["dh@sas.upenn.edu"])
+        self.assertEqual(q["to"], ["tb@sas.upenn.edu"])
         self.assertEqual(q["su"], ["Coffee & chat?"])
         self.assertEqual(q["body"], [body])
         self.assertEqual(q["authuser"], ["me@sas.upenn.edu"])
-        o = compose_url("outlook", "dh@sas.upenn.edu", "S", body)
+        o = compose_url("outlook", "tb@sas.upenn.edu", "S", body)
         self.assertEqual(urllib.parse.parse_qs(urllib.parse.urlsplit(o).query)["body"], [body])
-        m = compose_url("mailto", "dh@sas.upenn.edu", "S", body)
-        self.assertTrue(m.startswith("mailto:dh%40sas.upenn.edu?subject=S&body="))
+        m = compose_url("mailto", "tb@sas.upenn.edu", "S", body)
+        self.assertTrue(m.startswith("mailto:tb%40sas.upenn.edu?subject=S&body="))
         self.assertNotIn("\n", m)
         self.assertNotIn("+", m)  # spaces must be %20 for mail apps
 

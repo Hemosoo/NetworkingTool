@@ -95,13 +95,13 @@ def lookup_list(store: Store) -> str:
     people = []
     for c in store.list(["new"]):
         parts = clean_name(c["name"]).split()
-        if len(parts) >= 2 and not parts[-1].endswith("."):  # skip "Benjamin L." style names
+        if len(parts) >= 2 and not parts[-1].endswith("."):  # skip "Jane D." style names
             people.append([c["id"], parts[0], parts[-1]])
     return json.dumps(people, ensure_ascii=False, separators=(",", ":"))
 
 
 def _directory_first_name(dir_name: str) -> str:
-    # "Hagen, Deven Augustus Sehgal" -> "deven"
+    # "Doe, Jane Marie" -> "jane"
     _, _, rest = dir_name.partition(",")
     return (rest.split() or [""])[0].lower()
 
