@@ -1,144 +1,90 @@
-# PennReach 🎓☕
+# PennReach ☕
 
-A small command-line tool for Penn freshmen. It finds **incoming seniors at top firms**, gets their **Penn email**, and sends each one a short personal note asking to grab coffee or food. Every email goes through an **approve/decline** review queue, or you can switch on **full-auto mode**.
+A Chrome extension for Penn freshmen. It finds **incoming seniors at top firms** on LinkedIn, looks up their **Penn email** in the Penn Directory, and helps you send each one a short, personal note asking to grab coffee. Everything happens in a side panel, with no terminal and no setup beyond installing it.
 
-```
-LinkedIn search ──bookmarklet──▶ contacts.csv ──import──▶ filter (incoming @ target firm, class of '27)
-      ──find-emails (Penn Directory)──▶ draft ──review [a]pprove/[d]ecline/[e]dit──▶ send (rate-limited)
-```
+<p align="center">
+  <img src="docs/screenshots/02-people.png" width="260" alt="People collected from LinkedIn, with filtered-out people and reasons">
+  <img src="docs/screenshots/03-emails.png" width="260" alt="Penn emails found in the directory, with a choice between two matches">
+  <img src="docs/screenshots/04-send.png" width="260" alt="Drafted emails ready to open in Gmail">
+</p>
 
-## Why it's built this way
+## How it works
 
-| Decision | Why |
-|---|---|
-| **Local CLI + SQLite** instead of a web app or MCP server | It's a stop/start pipeline. State lives in `pennreach.db`, so you can import today, look up emails tomorrow and send next week, and no one is ever emailed twice. |
-| **A bookmarklet captures LinkedIn results you're viewing** instead of a headless scraper | LinkedIn bans accounts that use automated logins and crawlers, and your account is your professional identity. The bookmarklet only reads the page already on your screen, at your own pace. |
-| **Penn Directory lookup** instead of guessing emails | Penn addresses are PennKey-based (`jdoe@wharton.upenn.edu`, `smithj@seas.upenn.edu`…) and can't be derived from a name. A wrong guess emails a stranger. A bookmarklet runs one directory search per person in your own logged-in browser, and you confirm any ambiguous matches. |
-| **Dry run by default, a daily cap, random delays** | 10–15 personal emails a day from your Penn account reads as a human. 200 in a minute gets flagged as spam and annoys the people you want to meet. |
+1. **People:** search LinkedIn as you normally would. PennReach saves everyone on your screen and keeps only people who are *incoming* at a firm on your list and in the senior class.
+2. **Emails:** click **Find emails**. PennReach searches the Penn Directory for each person in your logged-in tab. When two people share a name, you pick the right one.
+3. **Send:** each person gets an email written from your template. Click **Open in Gmail**, read it, hit Send, then confirm in PennReach.
+4. **Tracker:** see who you've emailed, mark replies and coffee chats, and send a follow-up after a few days.
 
-## Setup
+## Install (about 2 minutes)
 
-Requires **Python 3.11+**. Check with `python3 --version`. The built-in Python on macOS is 3.9 and is too old; run `brew install python@3.12` and use `python3.12`. There are no third-party dependencies, so nothing needs installing.
+PennReach isn't in the Chrome Web Store yet, so you install it from a folder:
 
-```bash
-git clone <this repo> && cd NetworkingTool
-python3 -m pennreach init   # creates config.toml + pennreach.db
-```
+1. **Download it.** On this GitHub page, click the green **Code** button, then **Download ZIP**. Open the ZIP so you get a folder.
+   Move that folder somewhere it can stay, like your Documents folder. Chrome loads PennReach from there.
+2. **Open Chrome's extensions page.** Type `chrome://extensions` in the address bar and press Enter.
+3. **Turn on Developer mode,** using the switch in the top-right corner.
+4. **Click "Load unpacked"** (top left) and choose the **`extension`** folder inside the folder you downloaded.
+5. **Pin it.** Click the puzzle-piece icon next to the address bar, then the pin next to **PennReach**. The coffee-cup icon now sits in your toolbar.
+6. **Click the coffee cup** to open PennReach. Fill in the one-time setup (your name, school, major, Penn email), then click **Save & start**.
 
-Run every command from the repo folder as `python3 -m pennreach <command>`. The examples below write `pennreach` for short. If you'd rather type just `pennreach`, install it into a virtual environment:
+> Chrome may show a "Disable developer mode extensions" message when it starts. Click the ✕ to keep PennReach.
 
-```bash
-python3 -m venv .venv && source .venv/bin/activate && pip install -e .
-```
+**Updating:** download the new ZIP and replace the files in the same folder. Then click the ↻ reload button on PennReach's card at `chrome://extensions`. Your people and emails are kept. Exporting a backup first doesn't hurt (Tracker → Export CSV).
 
-After that, run `source .venv/bin/activate` in each new terminal before using `pennreach`.
+## Using it
 
-Edit `config.toml`:
-- **`[me]`**: your name, school, major, year, interests, and Penn email.
-- **`[targeting]`**: `grad_years` (current seniors, so `2027` for the 2026–27 year) and `target_firms`, plus `aliases` like `"GS" = "Goldman Sachs"`.
-- **`[template]`**: the email. Placeholders: `{first_name}`, `{name}`, `{firm}`, `{role}`, `{role_clause}` (" as an Investment Banking Analyst" or empty), `{my_name}`, `{my_first_name}`, `{my_school}`, `{my_major}`, `{my_interests}`, `{my_year}`, `{my_year_short}`.
-- **`[send]`**: `via` sets which mail app `pennreach open` uses.
-- **`[smtp]`**: only needed for automatic sending (`send --live`). Set the password in your shell, never in the file:
-  ```bash
-  export PENNREACH_SMTP_PASSWORD='your-app-password'
-  ```
-  For Gmail-based Penn accounts, use `smtp.gmail.com:587` with an [App Password](https://support.google.com/accounts/answer/185833). For Microsoft 365 accounts, use `smtp.office365.com:587`; SMTP AUTH has to be enabled for your account.
+### 1. People
+- Click **Open LinkedIn search** and add LinkedIn's **School** filter (University of Pennsylvania).
+- Click through the result pages. A small "PennReach: +8 people" message confirms each page was saved.
+- Matches appear in the panel. People who don't match (no "Incoming", not a target firm, interns, other class years) go under **Filtered out**, with the reason. Click **Keep** to add one anyway.
+- To pause collecting, turn off **Auto-collect**.
 
-## Workflow
+### 2. Emails
+- Click **Find emails**. The first time, PennReach opens the Penn Directory: click **Log in** at the top and sign in with your PennKey. Then click **Find emails** again.
+- Leave the directory tab open while it runs. It takes about 4 seconds per person.
+- **Choose the right person** appears when several students share a name. Click **Use** next to the right one.
+- **Couldn't find automatically** lets you paste an email yourself, or skip that person.
 
-### 1. Find people on LinkedIn
-Build the bookmarklet once:
-```bash
-python3 bookmarklet/build.py
-```
-Create a new browser bookmark and paste the printed `javascript:…` line as its URL.
+### 3. Send
+- Each card shows the finished email. Use **Edit** to change it for that person, or **Skip**.
+- **Open in Gmail** opens a new email in your Penn Gmail with the recipient, subject and message filled in. Hit Send in Gmail, then click **Yes, sent ✓** in PennReach.
+- You can send up to 15 a day by default (change it in Settings). Small batches get more replies.
 
-Then search LinkedIn People with something like `incoming analyst`, filtered to **School: University of Pennsylvania**. Click the bookmark on each results page; it keeps a running list. Each click asks what to do next: press **Cancel** to keep browsing, type **d** to download `contacts.csv`, or type **c** to clear the list and start over. People with no headline are left out of the download.
+### Tracker
+- Mark **They replied** or **Coffee booked**.
+- **Follow up** appears after 5 days without a reply and opens a short, friendly nudge in Gmail.
+- **Don't contact** makes sure you never email that person again.
 
-You can also make the CSV by hand (columns `name,headline,linkedin_url`, plus optional `email,firm,role,class_year`), or add one person at a time:
-```bash
-pennreach add --name "Jordan Lee" --headline "Incoming IB Analyst @ Goldman Sachs | W'27"
-```
+### Settings (⚙️)
+Your details, the senior class year, the list of target firms (one per line), and your email template. The template's placeholders, like `{first_name}`, `{firm}` and `{my_major}`, are listed under the message box.
 
-### 2. Import and filter
-```bash
-pennreach import ~/Downloads/contacts.csv -v
-```
-Only people who are **incoming/returning at a target firm** and in your **target class year** are kept. `-v` shows why each of the others was filtered out.
+## Privacy
 
-### 3. Get their Penn emails
+- **Everything stays in your browser.** People, emails and settings are saved in Chrome's local storage for the extension. Nothing is sent to any server. Tracker → **Export CSV** makes a backup, and Settings → **Delete all data** wipes it.
+- **It only acts on pages you open.** PennReach reads LinkedIn search results already on your screen; it never clicks, scrolls or pages for you. It searches the directory only when you click **Find emails**, one person at a time.
+- **You send every email yourself,** from your own Gmail.
 
-**Automatic (recommended).** Student emails in the Penn Directory are only visible when you're logged in, so the lookup runs in your own browser:
-
-1. One-time setup: run `python3 bookmarklet/build.py directory` and save the printed line as a bookmark named "PennReach: Penn Directory lookup".
-2. Copy your pending names to the clipboard:
-   ```bash
-   pennreach lookup-list
-   ```
-3. Open the [Penn Directory](https://directory.apps.upenn.edu/directory/jsp/fast.do), click **Log in** and sign in with PennKey and Duo.
-4. Click the bookmark and paste the list. It searches each person with a short pause between searches, then downloads `penn_emails.csv`.
-5. Import the results:
-   ```bash
-   pennreach import-emails ~/Downloads/penn_emails.csv
-   ```
-   A single match is filled in automatically. When there are several (two "Jordan Lee"s, or "Chris" listed as "Christopher"), you pick one from a numbered list.
-
-**Manual fallback,** for anyone the lookup couldn't find:
-```bash
-pennreach find-emails --open
-```
-This walks you through each person. Paste the email, or the whole directory row, and the address is extracted.
-
-### 4. Draft → review → send
-```bash
-pennreach draft
-pennreach review
-pennreach open
-```
-`review` gives you **[a]pprove / [d]ecline / [e]dit / [s]kip / [q]uit** for each draft, and `e` opens the email in `$EDITOR`. Approving never sends anything.
-
-**`pennreach open` (recommended)** opens each approved email already filled in, in Gmail, in Outlook on the web, or in your Mac's Mail app. You read it, click Send yourself, then press `y` in the terminal so it's recorded as sent. No passwords or setup needed. Set `via = "gmail"` (or `"outlook"` / `"mailto"`) under `[send]` in `config.toml` to skip the question each time.
-
-**Automatic sending (optional):** `pennreach send` shows a dry run of who would be emailed. `pennreach send --live` sends over SMTP, which needs the `[smtp]` settings and an app password. Many PennKey/Duo accounts don't allow app passwords, in which case use `open`.
-
-### Full-auto mode
-Set `auto = true` under `[mode]` in `config.toml`, then:
-```bash
-pennreach auto --live
-```
-This drafts, approves and sends everything that has an email. The daily cap, the delays, the never-email-twice rule and the opt-out list all still apply. Run it once a day, for example from cron, to work through the list at a steady pace.
-
-### Housekeeping
-```bash
-pennreach status
-pennreach list --status sent
-pennreach optout someone@upenn.edu
-```
-`status` shows counts plus how many emails you can still send today. `optout` makes sure an address is never emailed again; use it if someone asks you to stop.
-
-## Etiquette & policy (read this)
+## Etiquette & policy (please read)
 
 - **Keep it personal and low-volume.** Fifteen thoughtful emails get more coffee chats than 150 generic ones. Edit the template so it sounds like you.
-- **Follow Penn's rules.** Penn's [Policy on Acceptable Use of Electronic Resources](https://isc.upenn.edu/policies) and the Directory's terms forbid bulk harvesting and mass mailing. Look people up one at a time, only for people you actually plan to contact.
-- **Follow LinkedIn's terms.** The bookmarklet only reads pages you've opened yourself. Don't hook it up to anything that pages through results automatically.
-- **Respect no.** If someone doesn't reply or asks you to stop, run `pennreach optout`.
+- **Follow Penn's rules.** Directory listings "are not to be used for solicitation," and Penn's [acceptable use policy](https://isc.upenn.edu/policies) prohibits bulk harvesting and mass mail. A personal note to a few seniors is fine; a mailing campaign isn't.
+- **Follow LinkedIn's terms.** Don't pair PennReach with anything that pages through results automatically.
+- **Respect no.** If someone asks you to stop, mark them **Don't contact**.
 
-## Development
-
-```bash
-python3 -m unittest discover -s tests -t . -v
-```
+## For developers
 
 ```
-pennreach/
-  cli.py        # argparse subcommands
-  importer.py   # CSV → contacts, targeting filters
-  parsing.py    # headline parsing: incoming?, firm, role, class year
-  finder.py     # Penn Directory–assisted email lookup + validation
-  drafting.py   # template rendering
-  review.py     # interactive approve/decline/edit queue
-  compose.py    # `open`: pre-filled compose windows, you click Send
-  sender.py     # SMTP, daily cap, delays, dedupe/opt-out guards
-  db.py         # SQLite store + status machine
-bookmarklet/    # LinkedIn capture + Penn Directory lookup bookmarklets, builder
+extension/
+  manifest.json          # Chrome MV3 manifest
+  background.js          # opens the side panel from the toolbar icon
+  lib/core.js            # headline parsing, filtering, email matching, drafting, CSV (shared + unit-tested)
+  lib/store.js           # chrome.storage.local wrapper, one key per person
+  content/linkedin.js    # collects people from LinkedIn search results
+  content/directory.js   # runs Penn Directory searches in your logged-in tab
+  sidepanel/             # the UI
+  tests/core.test.js     # unit tests: node --test extension/tests/core.test.js
+  tests/e2e.js           # loads the extension in Chromium against mock pages: node extension/tests/e2e.js
+pennreach/, bookmarklet/ # the original command-line version, see docs/CLI.md
 ```
+
+The end-to-end test needs Playwright with a full Chromium build (`npm i playwright && npx playwright install chromium`). Pass `--screenshots docs/screenshots` to regenerate the screenshots above. All test data uses made-up people.
