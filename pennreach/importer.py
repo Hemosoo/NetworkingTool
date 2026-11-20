@@ -28,6 +28,8 @@ COLUMN_ALIASES = {
 class ImportResult:
     added: int = 0
     duplicates: int = 0
+    rows: int = 0
+    no_headline: int = 0
     filtered: list[tuple[str, str]] = field(default_factory=list)  # (name, reason)
 
 
@@ -96,6 +98,9 @@ def import_csv(
     result = ImportResult()
     with open(path, newline="", encoding="utf-8-sig") as fh:
         for row in csv.DictReader(fh):
+            result.rows += 1
+            if not _pick(row, "headline"):
+                result.no_headline += 1
             fields, reason = evaluate(row, cfg)
             if fields is None:
                 result.filtered.append((_pick(row, "name") or "?", reason))

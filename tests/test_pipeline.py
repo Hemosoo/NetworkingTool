@@ -61,6 +61,13 @@ class PipelineTests(unittest.TestCase):
         again = import_csv(SAMPLE, self.store, self.cfg)
         self.assertEqual((again.added, again.duplicates), (0, 3))
 
+    def test_import_counts_rows_without_headlines(self):
+        path = Path(self.tmp.name) / "names_only.csv"
+        path.write_text("name,headline,location,linkedin_url\n"
+                        "Nicholas Rogers,,,https://www.linkedin.com/in/nicholas-matthew-rogers\n")
+        res = import_csv(path, self.store, self.cfg)
+        self.assertEqual((res.rows, res.no_headline, res.added), (1, 1, 0))
+
     def test_penn_email_validation(self):
         self.assertTrue(is_penn_email("jdoe@wharton.upenn.edu"))
         self.assertTrue(is_penn_email("jdoe@upenn.edu"))

@@ -39,6 +39,10 @@ def cmd_import(args) -> int:
     store = _store(args)
     res = import_csv(args.csv, store, cfg, apply_filters=not args.no_filter)
     print(f"Added {res.added}, skipped {res.duplicates} duplicate(s), filtered {len(res.filtered)}.")
+    if res.rows and res.no_headline * 2 > res.rows:
+        print(f"\nWarning: {res.no_headline} of {res.rows} rows have no headline, so firm/role/class "
+              "can't be detected and they get filtered out.\nRe-capture with the latest "
+              "bookmarklet (`python3 bookmarklet/build.py`), or import with --no-filter.")
     if res.filtered and args.verbose:
         for name, reason in res.filtered:
             print(f"  - {name}: {reason}")

@@ -3,7 +3,7 @@
  *
  * Run it on a LinkedIn people-search results page you are viewing yourself, e.g. a search for
  *   "incoming" with School = University of Pennsylvania.
- * Each click adds the people visible on the current page to a running list (stored in this
+ * Each click adds (or fills in missing headlines for) the people visible on the current page to a running list (stored in this
  * browser only). When you're done paging, choose OK to download contacts.csv for
  * `pennreach import contacts.csv`.
  *
@@ -40,31 +40,74 @@
   var before = Object.keys(data).length;
   var anchors = document.querySelectorAll('a[href*="/in/"]');
 
+  // Links that show a person's name (photo links and buttons have no usable text).
+  var candidates = [];
   for (var i = 0; i < anchors.length; i++) {
     var a = anchors[i];
     var url = profileUrl(a.getAttribute("href"));
-    if (!url || data[url]) { continue; }
+    if (!url) { continue; }
     var nameEl = a.querySelector('span[aria-hidden="true"]');
     var name = clean(nameEl ? nameEl.textContent : a.textContent);
     if (!name || JUNK.test(name) || name.length > 80) { continue; }
+    candidates.push({ a: a, url: url, name: name });
+  }
 
-    var card = a.closest("li") || a.closest('[data-chameleon-result-urn]') || a.parentElement;
-    var lines = (card ? card.innerText : "").split("\n").map(clean).filter(function (l) {
-      return l && l !== name && !JUNK.test(l) && l.indexOf(name) !== 0;
+  // The results list = the element with the most child branches containing a name link.
+  // Each of those children is one result card. This ignores page layout/class names entirely.
+  var branchCounts = new Map();
+  candidates.forEach(function (c) {
+    var child = c.a;
+    var parent = child.parentElement;
+    while (parent && parent !== document.documentElement) {
+      if (!branchCounts.has(parent)) { branchCounts.set(parent, new Set()); }
+      branchCounts.get(parent).add(child);
+      child = parent;
+      parent = parent.parentElement;
+    }
+  });
+  var list = null;
+  var best = 0;
+  branchCounts.forEach(function (children, el) {
+    if (children.size > best) { best = children.size; list = el; }
+  });
+
+  // In each card, the first name link is the person; later ones (mutual connections) are ignored.
+  var cards = [];
+  if (list) {
+    branchCounts.get(list).forEach(function (card) {
+      for (var k = 0; k < candidates.length; k++) {
+        if (card.contains(candidates[k].a)) { cards.push({ card: card, person: candidates[k] }); break; }
+      }
+    });
+  }
+
+  var updated = 0;
+  cards.forEach(function (entry) {
+    var person = entry.person;
+    var url = person.url;
+    if (data[url] && data[url].headline) { return; }
+    var lines = (entry.card.innerText || "").split("\n").map(clean).filter(function (l) {
+      return l && l !== person.name && !JUNK.test(l) && l.indexOf(person.name) !== 0;
     });
     var headline = lines[0] || "";
     var location = lines[1] || "";
     for (var j = 0; j < lines.length; j++) {
       if (/^(current|past):/i.test(lines[j])) { headline += " | " + lines[j]; break; }
     }
-    data[url] = { name: name, headline: headline, location: location, linkedin_url: url };
-  }
+    if (data[url]) { updated++; }
+    data[url] = { name: person.name, headline: headline, location: location, linkedin_url: url };
+  });
 
   save(data);
   var total = Object.keys(data).length;
   var added = total - before;
+  var missing = 0;
+  Object.keys(data).forEach(function (k) { if (!data[k].headline) { missing++; } });
   var go = confirm(
-    "PennReach: captured " + added + " new (" + total + " total).\n\n" +
+    "PennReach: captured " + added + " new" + (updated ? ", filled in " + updated : "") +
+    " (" + total + " total)." +
+    (missing ? "\n\nWarning: " + missing + " have no headline, so they can't be filtered. Tell whoever set this up." : "") +
+    "\n\n" +
     "OK = download contacts.csv now\nCancel = keep browsing (go to the next page and click again)"
   );
   if (!go) { return; }
