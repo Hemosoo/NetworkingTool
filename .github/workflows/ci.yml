@@ -1,0 +1,29 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Extension unit tests
+        run: node --test extension/tests/core.test.js
+      - name: Extension syntax check
+        run: for f in extension/lib/*.js extension/content/*.js extension/sidepanel/*.js extension/background.js; do node --check "$f"; done
+      - name: Manifest is valid JSON
+        run: python3 -c "import json; json.load(open('extension/manifest.json'))"
+      - name: CLI unit tests
+        run: python3 -m unittest discover -s tests -t . -v

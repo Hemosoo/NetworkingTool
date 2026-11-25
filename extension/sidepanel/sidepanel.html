@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PennReach</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="../icons/icon32.png" alt="" width="24" height="24">
+      <div>
+        <div class="brand-name">PennReach</div>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+    <button class="icon-btn" id="settings-btn" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5-2.2-1.6ZM13 15.5A3.5 3.5 0 1 1 13 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>
+    </button>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button data-tab="people" role="tab">1. People</button>
+    <button data-tab="emails" role="tab">2. Emails</button>
+    <button data-tab="send" role="tab">3. Send</button>
+    <button data-tab="tracker" role="tab">Tracker</button>
+  </nav>
+  <div id="flash" class="flash" hidden></div>
+  <main id="view"></main>
+  <input type="file" id="import-file" accept=".csv,text/csv" hidden>
+  <script src="../lib/core.js"></script>
+  <script src="../lib/store.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

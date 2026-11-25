@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "PennReach",
+  "version": "0.1.0",
+  "description": "Find incoming Penn seniors at top firms on LinkedIn, get their Penn email, and send coffee-chat requests from Gmail.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzuqPLv14XNZa1QX4d1r8FKX2n1XQR6gTwZTjr0VdN9BN+ceakgMXbcBpRtNQbQ2J296i7tVb/SnlfMj4gGdhS02a5M7rLFKcTWJqSMnFuO8GQNvicRz5KwHM3p6/Yh90UqcBS6wZ5P1cM4KoVrSnqYNw5kp2Zy/b6LCPEjgvH6D9v6GMkX8F5kLELH9mTwMdfzy6HeffbQx/lQzC/qapWw4+Z8YHRyR/3wLYKBWHU/S8uOBQKu5QYoVwyA+gsdcWS9Nroh4juSAvr/LUEU2YqvVj0QZoBzQ2xCA4kqmRlCjjYGCbHTVL1VrTMOUL/+mv+hKWL10IQW+shUOWnt1+oQIDAQAB",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://directory.apps.upenn.edu/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open PennReach",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*"
+      ],
+      "js": [
+        "lib/core.js",
+        "lib/store.js",
+        "content/linkedin.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://directory.apps.upenn.edu/directory/*"
+      ],
+      "js": [
+        "lib/core.js",
+        "lib/store.js",
+        "content/directory.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
