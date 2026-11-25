@@ -1,11 +1,11 @@
 ## Install
 
-1. Download **PennReach-…zip** below and open it, so you get a folder. Move the folder somewhere it can stay, like Documents.
+1. Under **Assets** below, download **PennReach-v….zip**, not "Source code". Unzip it (on Windows: right-click → **Extract All**), and move the folder somewhere it can stay, like Documents.
 2. In Chrome, go to `chrome://extensions` and turn on **Developer mode** (top right).
 3. Click **Load unpacked** and choose the folder.
 4. Pin PennReach (puzzle-piece icon → pin), click the coffee cup, and fill in the one-time setup.
 
-Full guide, privacy notes and etiquette: see the [README](../../#readme).
+Step-by-step guide with pictures and troubleshooting: see the [README](../../#install-about-5-minutes).
 
 ## What's in it
 

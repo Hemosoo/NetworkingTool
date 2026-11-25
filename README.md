@@ -15,21 +15,65 @@ A Chrome extension for Penn freshmen. It finds **incoming seniors at top firms**
 3. **Send:** each person gets an email written from your template. Click **Open in Gmail**, read it, hit Send, then confirm in PennReach.
 4. **Tracker:** see who you've emailed, mark replies and coffee chats, and send a follow-up after a few days.
 
-## Install (about 2 minutes)
+## Install (about 5 minutes)
 
-PennReach isn't in the Chrome Web Store yet, so you install it from a folder:
+### Before you start
+You'll need:
+- **Google Chrome** on a Mac or Windows computer. Other Chrome-based browsers (Arc, Brave, Edge) work too; Safari and Firefox don't.
+- A **LinkedIn** account.
+- Your **PennKey**, to log in to the Penn Directory.
+- Your **Penn Gmail**, the account you send email from.
 
-1. **Download it.** Go to this repo's [**Releases**](../../releases/latest) page and download **PennReach-….zip**. Open the ZIP so you get a folder.
-   Move that folder somewhere it can stay, like your Documents folder. Chrome loads PennReach from there.
-2. **Open Chrome's extensions page.** Type `chrome://extensions` in the address bar and press Enter.
-3. **Turn on Developer mode,** using the switch in the top-right corner.
-4. **Click "Load unpacked"** (top left) and choose the folder you just unzipped. It's the one with `manifest.json` inside.
-5. **Pin it.** Click the puzzle-piece icon next to the address bar, then the pin next to **PennReach**. The coffee-cup icon now sits in your toolbar.
-6. **Click the coffee cup** to open PennReach. Fill in the one-time setup (your name, school, major, Penn email), then click **Save & start**.
+> School-managed computers sometimes block step 3 below. If you can't turn on Developer mode, use your personal computer.
 
-> Chrome may show a "Disable developer mode extensions" message when it starts. Click the ✕ to keep PennReach.
+### Step 1: Download PennReach
+1. Open the [**latest release**](../../releases/latest).
+2. Scroll down to **Assets** (click the word "Assets" if the list is closed).
+3. Click **`PennReach-v….zip`** (for example `PennReach-v0.1.0.zip`) to download it.
+   > ⚠️ **Don't** download "Source code (zip)". That's the developer version, and Chrome will reject it.
 
-**Updating:** download the new ZIP from Releases and replace the files in the same folder. Then click the ↻ reload button on PennReach's card at `chrome://extensions`. Your people and emails are kept. Exporting a backup first doesn't hurt (Tracker → Export CSV).
+### Step 2: Unzip it into a folder that will stay put
+- **Mac:** open your **Downloads** folder and double-click the zip. A folder called `PennReach-v0.1.0` appears next to it.
+- **Windows:** open your **Downloads** folder, **right-click** the zip, choose **Extract All…**, then **Extract**. Double-clicking only *previews* a zip on Windows, and Chrome can't use that.
+
+Then **move that folder somewhere permanent,** such as **Documents**. Chrome loads PennReach from this folder every time it starts, so don't delete or move it later.
+
+### Step 3: Add it to Chrome
+1. In Chrome, click the address bar, type `chrome://extensions`, and press **Enter**.
+2. Turn on **Developer mode** with the switch in the top-right corner **(1)**.
+3. Click **Load unpacked** **(2)**. In the window that opens, find the `PennReach-v0.1.0` folder from Step 2, click it once, and click **Select** (Mac) or **Select Folder** (Windows).
+4. A **PennReach** card appears. You can ignore the **(3)** reload button until you update.
+
+<p align="center"><img src="docs/screenshots/install-chrome-extensions.png" width="640" alt="Chrome's extensions page: (1) Developer mode switch, (2) Load unpacked button, (3) reload button on the PennReach card"></p>
+
+### Step 4: Pin it and open it
+1. Click the **puzzle-piece** icon to the right of Chrome's address bar.
+2. Find **PennReach** and click the **pin** next to it. A navy **coffee-cup** icon now stays in your toolbar.
+3. Click the **coffee cup**. PennReach opens in a panel on the right side of the window.
+4. Fill in the one-time setup (your name, school, major, Penn email) and click **Save & start**. You're ready! Continue with [Using it](#using-it).
+
+<p align="center"><img src="docs/screenshots/01-welcome.png" width="260" alt="PennReach's one-time setup screen"></p>
+
+### If something goes wrong
+| What you see | What to do |
+|---|---|
+| "Manifest file is missing or unreadable" | You picked the wrong folder or downloaded "Source code". Choose the folder that contains `manifest.json` directly, unzipped from **`PennReach-v….zip`** (Steps 1–2). |
+| You can't find **Developer mode** or **Load unpacked** | Make sure you're at `chrome://extensions` in Chrome itself. On a school-managed computer, these may be blocked. |
+| The coffee cup isn't in the toolbar | Click the puzzle-piece icon and pin PennReach (Step 4). |
+| Chrome says "Disable developer mode extensions" | This can appear when Chrome starts. Close the message with ✕ or choose to keep the extension. Don't click "Disable". |
+| PennReach vanished after you moved or deleted the folder | Put the folder back, or go to `chrome://extensions` and use **Load unpacked** again with the folder's new location. |
+| LinkedIn pages aren't being collected | Use LinkedIn's **People** search results (not "All"). Scroll down so the results load, then reload the LinkedIn tab once. |
+| **Find emails** says you're not logged in | In the Penn Directory tab, click **Log in** at the top and sign in with your PennKey, then click **Find emails** again. |
+| Gmail opens in the wrong account | In PennReach Settings (⚙️), enter your Penn email. Also make sure you're signed in to your Penn Gmail in this Chrome profile. |
+
+### Updating to a new version
+Your people, emails and settings are kept when you update. Just don't remove the extension.
+1. Optional backup: in PennReach, go to **Tracker → Export CSV**.
+2. Download and unzip the new `PennReach-v….zip` (Steps 1–2).
+3. Open your existing PennReach folder (the one from Step 2), **delete everything inside it**, and drag in everything from the new folder.
+4. Go to `chrome://extensions` and click the **↻ reload** button on PennReach's card **(3)**.
+
+> ⚠️ **Never click "Remove"** on PennReach's card unless you want to erase everything it has saved.
 
 ## Using it
 
