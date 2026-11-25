@@ -87,7 +87,7 @@ extension/
 pennreach/, bookmarklet/ # the original command-line version, see docs/CLI.md
 ```
 
-**Releasing:** bump `version` in `extension/manifest.json`, then push a matching tag (e.g. `v0.1.1`). GitHub Actions runs the tests, zips `extension/` and publishes the release.
+**Releasing:** bump `version` in `extension/manifest.json`, then go to **Actions → Release → Run workflow**, or push a matching tag such as `v0.1.1`. GitHub Actions runs the tests, zips `extension/` and publishes the release.
 
 The end-to-end test needs Playwright with a full Chromium build (`npm i playwright && npx playwright install chromium`). Pass `--screenshots docs/screenshots` to regenerate the screenshots above. All test data uses made-up people.
 

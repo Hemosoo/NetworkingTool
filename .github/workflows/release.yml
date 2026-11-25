@@ -1,7 +1,11 @@
-# Push a tag like v0.1.0 to publish a release with a ready-to-install extension zip.
+# Publishes a GitHub release with a ready-to-install extension zip.
+# Start it either way:
+#   - Actions tab -> "Release" -> "Run workflow" (uses the version in extension/manifest.json), or
+#   - push a tag like v0.1.0 that matches the manifest version.
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     tags: ["v*"]
 
@@ -18,17 +22,24 @@ jobs:
           node-version: "22"
       - name: Tests
         run: node --test extension/tests/core.test.js
-      - name: Tag matches manifest version
+      - name: Work out the version
         run: |
           v=$(node -p "require('./extension/manifest.json').version")
-          test "v$v" = "$GITHUB_REF_NAME" || { echo "manifest version $v does not match tag $GITHUB_REF_NAME"; exit 1; }
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$v" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match manifest version $v"; exit 1
+          fi
+          echo "TAG=v$v" >> "$GITHUB_ENV"
       - name: Package extension
         run: |
           cd extension
-          zip -r "../PennReach-${GITHUB_REF_NAME}.zip" . -x "tests/*" "icons/icon.svg"
+          zip -r "../PennReach-${TAG}.zip" . -x "tests/*" "icons/icon.svg"
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" "PennReach-${GITHUB_REF_NAME}.zip" \
-            --title "PennReach $GITHUB_REF_NAME" --notes-file .github/release-notes.md
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "PennReach-${TAG}.zip" --clobber
+          else
+            gh release create "$TAG" "PennReach-${TAG}.zip" --target "$GITHUB_SHA" \
+              --title "PennReach $TAG" --notes-file .github/release-notes.md
+          fi
